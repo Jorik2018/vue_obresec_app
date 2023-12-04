@@ -5,19 +5,48 @@ import IsobitUI from 'isobit-ui'
 import App from './App.vue'
 import Ionic from '@ionic/vue';
 import '@ionic/core/css/ionic.bundle.css';
-
 import './cdn/isobit.css'
-import VOptions from "./o/v-options.vue";
+import VueI18n from 'vue-i18n';
+
+import * as olProj from 'ol/proj';
+import Map from 'ol/Map'
+import View from 'ol/View'
+import Collection from 'ol/Collection'
+import {Fill, Stroke, Style, Circle, RegularShape} from 'ol/style'
+import {Tile,Vector as VectorLayer} from 'ol/layer'
+import {OSM,Vector} from 'ol/source'
+import Point from 'ol/geom/Point'
+import Control from 'ol/control/Control'
+import FullScreen from 'ol/control/FullScreen'
+import Overlay from 'ol/Overlay'
+import Feature from 'ol/Feature'
+import GeoJSON from 'ol/format/GeoJSON'
+import Translate from 'ol/interaction/Translate'
+import Text from  'ol/style/Text'
+
+window.ol={
+	Overlay:Overlay,
+	Feature:Feature,
+	proj:olProj,
+	interaction:{Translate:Translate},
+	format:{GeoJSON:GeoJSON},
+	geom:{Point:Point},
+	control:{Control:Control,FullScreen:FullScreen},
+	Map:Map,
+	View:View,
+	Collection:Collection,
+	source:{OSM:OSM,Vector:Vector},
+	layer:{Tile:Tile,Vector:VectorLayer},
+	style:{Style:Style,Stroke:Stroke,Text:Text,Fill:Fill,Circle:Circle,RegularShape:RegularShape}
+}
 
 
+Vue.use(VueI18n);
 Vue.use(Router);
 Vue.use(IsobitUI);
-Vue.component("v-options", VOptions);
 Vue.use(Ionic);
-Vue.config.ignoredElements = [/^ion-/];   // add this line
+Vue.config.ignoredElements = [/^ion-/,/^v-/];   // add this line
 Vue.config.productionTip = false;
-
-
 
 Vue.filter('upper', (s) => {
 	return s ? s.toUpperCase() : s;
@@ -65,90 +94,53 @@ const router = new Router({
 					path: 'notification',
 					component: r => require.ensure([], () => r(require('./admin/Notifications.vue')), 'notifications')
 				},
-				{
-					path: 'crime', props: true,
-					component: r => require.ensure([], () => r(require('./admin/crime/List.vue')), 'productosgeneral'),
-				},
-				{
-					path: 'crime/create',
-					component: r => require.ensure([], () => r(require('./admin/crime/Create.vue')), 'createe')
-				},
-				{
-					path: 'crime/:id/edit', props: true,
-					component: r => require.ensure([], () => r(require('./admin/crime/Create.vue')), 'createe')
-				},
-				{
-					path: 'risk', props: true,
-					component: r => require.ensure([], () => r(require('./admin/risk/List.vue')), 'productosgeneral'),
-				},
-				{
-					path: 'risk/create',
-					component: r => require.ensure([], () => r(require('./admin/risk/Create.vue')), 'createe')
-				},
-				{
-					path: 'risk/:id/edit', props: true,
-					component: r => require.ensure([], () => r(require('./admin/risk/Create.vue')), 'createe')
-				},
-				{
-					path: 'poll/:id', props: true,
-					component: r => require.ensure([], () => r(require('./admin/poll/Create.vue')), 'createe')
-				},
-				{
-					path: 'poll/:id/a', props: true,
-					component: r => require.ensure([], () => r(require('./admin/poll/SeccionA.vue')), 'productosgeneral'),
-				},
-				{
-					path: 'poll/:id/peoples', props: true,
-					component: r => require.ensure([], () => r(require('./admin/poll/people/List.vue')), 'productosgeneral'),
-				},
-				{
-					path: 'poll/:parent/people', props: true,
-					component: r => require.ensure([], () => r(require('./admin/poll/people/Create.vue')), 'productosgeneral'),
-				},
-				{
-					path: 'poll/:parent/people/:id', props: true,
-					component: r => require.ensure([], () => r(require('./admin/poll/people/Create.vue')), 'productosgeneral'),
-				},
-				{
-					path: 'poll/:id/c', props: true,
-					component: r => require.ensure([], () => r(require('./admin/poll/SeccionC.vue')), 'productosgeneral'),
-				},
-				{
-					path: 'poll/:id/d', props: true,
-					component: r => require.ensure([], () => r(require('./admin/poll/SeccionD.vue')), 'productosgeneral'),
-				},
-				{
-					path: 'poll/:id/e', props: true,
-					component: r => require.ensure([], () => r(require('./admin/poll/SeccionEList.vue')), 'productosgeneral'),
-				},
-				{
-					path: 'poll/:parent/e/:id', props: true,
-					component: r => require.ensure([], () => r(require('./admin/poll/SeccionE.vue')), 'productosgeneral'),
-				},
-				{
-					path: 'poll/:id/f', props: true,
-					component: r => require.ensure([], () => r(require('./admin/poll/SeccionF.vue')), 'productosgeneral'),
-				},
-				{
-					path: 'poll/:id/g', props: true,
-					component: r => require.ensure([], () => r(require('./admin/poll/SeccionG.vue')), 'productosgeneral'),
-				},
-				{
-					path: 'poll/:id/h', props: true,
-					component: r => require.ensure([], () => r(require('./admin/poll/SeccionH.vue')), 'productosgeneral'),
-				},
-				{
-					path: 'poll/:id/i', props: true,
-					component: r => require.ensure([], () => r(require('./admin/poll/SeccionI.vue')), 'productosgeneral'),
-				},
-				{
-					path: 'poll/:id/j', props: true,
-					component: r => require.ensure([], () => r(require('./admin/poll/SeccionJ.vue')), 'productosgeneral'),
-				},
-				{
-					path: 'poll/:id/k', props: true,
-					component: r => require.ensure([], () => r(require('./admin/poll/SeccionK.vue')), 'productosgeneral'),
-				},
+		
+						{
+							path: 'obresec/crime', props: true,
+							component: r => require.ensure([], () => r(require('./admin/crime/List.vue')), 'productosgeneral'),
+						},
+						{
+							path: 'obresec/crime/create',
+							component: r => require.ensure([], () => r(require('./admin/crime/Create.vue')), 'createe')
+						},
+						{
+							path: 'obresec/crime/:id/edit', props: true,
+							component: r => require.ensure([], () => r(require('./admin/crime/Create.vue')), 'createe')
+						},
+						{
+							path: 'obresec/crime/type', props: true,
+							component: r => require.ensure([], () => r(require('./admin/crime/type/List.vue')), 'crime-type'),
+						},
+						{
+							path: 'obresec/crime/category', props: true,
+							component: r => require.ensure([], () => r(require('./admin/crime/category/List.vue')), 'crime-catogory'),
+						},
+						{
+							path: 'obresec/crime/category/:id/edit', props: true,
+							component: r => require.ensure([], () => r(require('./admin/crime/category/Create.vue')), 'crime-catogory'),
+						},
+						{
+							path: 'obresec/crime/category/create', props: true,
+							component: r => require.ensure([], () => r(require('./admin/crime/category/Create.vue')), 'crime-catogory'),
+						},
+						{
+							path: 'obresec/risk', props: true,
+							component: r => require.ensure([], () => r(require('./admin/risk/List.vue')), 'productosgeneral'),
+						},
+						{
+							path: 'obresec/risk/create',
+							component: r => require.ensure([], () => r(require('./admin/risk/Create.vue')), 'createe')
+						},
+						{
+							path: 'obresec/risk/:id/edit', props: true,
+							component: r => require.ensure([], () => r(require('./admin/risk/Create.vue')), 'createe')
+						},
+						{
+							path: 'obresec/risk/type', props: true,
+							component: r => require.ensure([], () => r(require('./admin/risk/type/List.vue')), 'risk-type'),
+						}
+					
+				,				
 				{
 					path: 'profile',
 					component: r => require.ensure([], () => r(require('./admin/Profile.vue')), 'profile')
@@ -160,22 +152,60 @@ const router = new Router({
 
 
 localStorage.setItem('intro', true);
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
+	
+
+	
 	var session = localStorage.getItem('session');
 	if (session) session = JSON.parse(session);
-	session={};
-	//console.log(session);
 	if (to.path == '/logout') {
 		window.app.session = null;
 		localStorage.removeItem('session');
 		next('/');
-	} else if (!session && !(to.path == '/register' || to.path == '/password' || to.path == '/login')) {
-		next('/login');
-
-	} else next();
+	} else {
+		if(to.path == '/register' || to.path == '/password' || to.path == '/login'){
+			next();
+		}else{
+			/*if (!session||!session.token) {
+				const url = new URL(window.location);
+				location.href = `${process.env.VUE_APP_OAUTH_URL}/authorize?response_type=code&client_id=${process.env.VUE_APP_OAUTH_CLIENT_ID}&scope=profile&destiny=`+url.pathname;
+				//next('/login');
+			} else {*/
+				next();
+			//}
+		}
+	}
 });
+	const messages = {
+		en: {
+			Report: 'Reports',
+			RegisterDate: 'Fecha Registro',
+			Sex: 'Sexo',
+			Create: 'Crear',
+			Edit: 'Editar',
+			From: 'Desde',
+			Save: 'Grabar',
+			CrimeCategory: 'Categoría Delito',
+			Observation: 'Observación',
+			To: 'Hasta',
+			Description: 'Descripción',
+			Delete: 'Eliminar',
+			Province: 'Provincia',
+			GeographicLocation: 'Ubicación Geográfica',
+			Type: 'Tipo',
+			Date: 'Fecha',
+			District: 'Distrito'
+		}
+	};
+  
+  const i18n = new VueI18n({
+	locale: 'en', // Set the initial locale
+	messages,
+  });
+
 new Vue({
 	router,
 	render: h => h(App),
+	i18n,
 	created() { window.$app = this; }
 }).$mount('#app')

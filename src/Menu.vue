@@ -38,22 +38,22 @@
 				</ion-toolbar>
 			</ion-header>
 			<ion-content>
-				<ion-item href="/">
+				<ion-item href="/admin">
 					<i class="fa fa-home"></i>Inicio
 				</ion-item>
-				<ion-item href="/admin/profile">
-					<i class="fa fa-user"></i>Mi Cuenta
+				<ion-item href="/admin/obresec/crime/type">
+					<i class="fa fa-table"></i>Tipo Delitos
 				</ion-item>
-				<ion-item href="/admin/setting">
-					<i class="fa fa-sliders-h"></i>Configuración
+				<ion-item href="/admin/obresec/crime/category">
+					<i class="fa fa-table"></i>Categoria Delitos
 				</ion-item>
-				<ion-item href="/admin/poll">
-					<i class="fa fa-table"></i>Encuesta
+				<ion-item href="/admin/obresec/risk/type">
+					<i class="fa fa-table"></i>Tipo Riesgos
 				</ion-item>
-				<ion-item href="/admin/crime">
+				<ion-item href="/admin/obresec/crime">
 					<i class="fa fa-table"></i>Delitos
 				</ion-item>
-				<ion-item href="/admin/risk">
+				<ion-item href="/admin/obresec/risk">
 					<i class="fa fa-table"></i>Riesgos
 				</ion-item>
 				<ion-item class="_">

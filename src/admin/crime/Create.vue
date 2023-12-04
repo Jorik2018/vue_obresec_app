@@ -1,321 +1,233 @@
 <template>
   <ion-content :scroll-events="true">
-    <v-form
-      style="padding: 10px"
-      class="v-form"
-      :class="
-        o.id < 0 || (o.tmpId && !o.synchronized)
-          ? 'yellow'
-          : o.tmpId
-          ? 'green'
-          : ''
-      "
-      store="poll"
-      action="/api/poll/main"
-    >
-      <span class="v-button-top-float" v-on:click="save"
-        ><i class="fa fa-save"></i
-      ></span>
-      <h2
-        style="
-          margin-right: 50px;
-          padding-left: 34px;
-          margin-bottom: 20px;
-          position: relative;
-          font-size: 24px;
-          background-color: transparent;
-        "
-      >
-        CUESTIONARIO SOBRE CONDICIONES DE VIDA 2022
-      </h2>
-      <div v-if="o.id" :class="o.id < 0 ? 'yellow' : ''">ID={{ o.id }}</div>
-      <v-fieldset
-        legend="SECCIÓN DE IDENTIFICACIÓN MUESTRAL Y GEOGRÁFICA DE LOS ENCUESTADOS"
-      >
-        <label>Departamento:</label>
-        <v-select
-          v-model="o.region"
-          @input="$refs.province.load({ code: pad(o.region, 2) })"
-        >
-          <option value="">Seleccionar Opci&oacute;n</option>
-          <v-options store="region" value-field="id" display-field="name" />
-        </v-select>
-        <label>Provincia:</label>
-        <v-select
-          v-model="o.provincia"
-          ref="province"
-          :required="true"
-          :autoload="false"
-          :disabled="!o.region"
-          @input="$refs.district.load({ code: o.provincia })"
-        >
-          <option>Select One...</option>
-          <v-options store="province" value-field="code" display-field="name" />
-        </v-select>
-        <label>Distrito:</label>
-        <v-select
-          v-model="o.distrito"
-          ref="district"
-          :autoload="false"
-          store="district_selected"
-          @input="$refs.cp.load({ id: o.distrito })"
-          :disabled="!o.provincia"
-          name="district"
-          required="required"
-        >
-          <option value="">Select One...</option>
-          <v-options store="district" value-field="code" display-field="name" />
-        </v-select>
-        <label>Centro Poblado:</label>
-        <v-select
-          ref="cp"
-          v-on:input="changeTown(o.centro_poblado)"
-          autoload="false"
-          :disabled="!o.distrito"
-          v-model="o.centro_poblado"
-        >
-          <option value="">Seleccionar Opci&oacute;n</option>
-          <v-options store="town"  display-field="name" />
-        </v-select>
-        <label>Tipo:</label>
-        <v-select v-model="o.urb_rur" required="true">
-          <option value="">Seleccionar Opci&oacute;n</option>
-          <option value="U">URBANO</option>
-          <option value="R">RURAL</option>
-        </v-select>
-        <label>Conglomerado</label>
-        <input v-model="o.conglomerado" />
-        <template v-if="o.urb_rur == 'U'">
-          <label>Zona</label>
-          <input v-model="o.zona" />
-          <label>Manzana</label>
-          <input v-model="o.manzana" />
-        </template>
-        <label>Selección</label>
-        <input v-model="o.seleccion" />
-        <label>Vivienda</label>
-        <input v-model="o.vivienda" />
-        <label>Vivienda Suplementaria</label>
-        <input v-model="o.vivienda_sup" />
-        <label>Hogar</label>
-        <v-number v-model="o.hogar" required="true" min="1" />
-        <v-button
-          style="margin-top: 10px"
-          icon="fa-map"
-          value="Obtener Geolocalización"
-          v-on:click="printCurrentPosition"
-        />
-        <div
-          v-if="(o.lat && o.lat != 0) || (o.lon && o.lon != 0) || trayLocation"
-          style="
-            margin-top: 10px;
-            border: 1px solid #ffcf00;
-            background-color: #ffff80;
-            padding: 10px;
-          "
-        >
-          ({{ o.lat }},{{ o.lon }})
+    <v-form class="panel" action="/admin/obresec/api/crime"
+      :header="(o.id ? $t('Edit') : $t('Create')) + ' ' + $t('Crime')">
+      <div class="v-toolbar" style="padding: 5px;background-color: lightgray;">
+        <v-button :value="$t('Save')" icon="fa-save" @click.prevent="save" />
+        <v-button :value="$t('New')" icon="fa-file" @click.prevent="create" />
+      </div>
+      <div style="flex:1;display: flex;">
+        <v-fieldset legend="Ubicación Geográfica" class="v-form" style="flex:1;margin: 10px 0px 10px 10px;width: calc(100% - 350px);
+                    display: flex;
+                    flex-direction: column;">
+          <div class="col-2" style="display: flex;">
+            <div ref="controls" style="flex:1;margin-right: 2px;">
+              <label>{{ $t('Province') }}:</label>
+              <v-select v-model="o.ext.province" name="province" required="true"
+                @input="changeProvince({ provinceId: parseInt(o.ext.province) })">
+                <option value="">{{ $t('SelectOneMessage') }}</option>
+                <v-options url="/admin/directory/api/province/0/0?regionId=2" value-field="code" display-field="name" />
+              </v-select>
+            </div>
+            <div style="flex:1;margin-left: 2px;">
+              <label>{{ $t('District') }}:</label>
+              <v-select ref="district" :disabled="!o.ext.province" :autoload="false" v-model="o.districtId" required="true"
+                class="v-district">
+                <option value="">{{ $t('SelectOneMessage') }}</option>
+                <v-options url="/admin/directory/api/district/0/0" value-field="code" display-field="name" />
+              </v-select>
+            </div>
+          </div>
+          <v-map ref="map" @build="mapBuild" style="flex:1;margin-top: 10px;height:300px" @translateend="translateend">
+            <v-layer-control ref="layerControl" @scope="layerControlScope" />
+            <v-map-control @click="addMarker" style="top: 80px;left: .5em;" icon="fa-map-marker" />
+            <v-map-control @click="$refs.layerControl.setScope(0)" style="bottom: 8px;left: 0.5em;" class="ic-42 ancash"
+              :icon="'ancash'" />
+          </v-map>
+          <div style="position: absolute;
+    bottom: 28px;
+    left: 74px;" v-if="0 > o.lat">{{ o.lat }}, {{ o.lon }}</div>
+        </v-fieldset>
+        <div class="v-form _" ref="form" style="overflow-y: auto;
+              padding: 10px;
+              width: 300px;">
+          <label>{{ $t('Date') }}:</label>
+          <v-calendar required="true" v-model="o.fecha" />
+          <label>{{ $t('Description') }}:</label>
+          <v-textarea maxlength="250" v-model="o.description" />
+          <label>{{ $t('Address') }}:</label>
+          <v-textarea maxlength="250" v-model="o.address" />
+          <v-fieldset legend="Clasificaci&oacute;n" class="v-form">
+            <label>{{ $t('Category') }}:</label>
+            <v-select v-model="o.ext.category" required="true"
+              @input="$refs.typeCategory.load({ category: o.ext.category })">
+              <option value="">{{ $t('SelectOneMessage') }}</option>
+              <v-options url="/admin/obresec/api/crime-category/0/0" value-field="id" display-field="name" />
+            </v-select>
+            <label>{{ $t('Type') }}:</label>
+            <v-select ref="typeCategory" :autoload="false" required="true" :disabled="!o.ext.category"
+              v-model="o.crimeTypeId">
+              <option value="">{{ $t('SelectOneMessage') }}</option>
+              <v-options url="/admin/obresec/api/crime-type/0/0" value-field="id" display-field="name" />
+            </v-select>
+          </v-fieldset>
+          <v-fieldset legend="Victima" closable="true">
+            <label>{{ $t('Sex') }}:</label>
+            <v-radio-group v-model="o.victimSex">
+              <v-radio value="M" label="Masculino" />
+              <v-radio value="F" label="Femenino" />
+            </v-radio-group>
+            <label>{{ $t('Age') }}:</label>
+            <v-number v-model="o.victimAge" min="0" max="120" />
+            <label>{{ $t('Nationality') }}:</label>
+            <v-autocomplete queryEvent="enter" placeholder="Ingrese mas de 2 letras y presione ENTER" minQueryLength="3"
+              emptyMessage="Buscar por nombre (2 caracteres min.)" size="60" v-model="o.ext.victimCountry"
+              src="/admin/directory/api/country">
+              <template v-slot:label="{ selected }" v-if="o.ext.victimCountry">{{ selected.name }}</template>
+              <template v-slot="{ row }">
+                {{ row.name }}
+              </template>
+            </v-autocomplete>
+          </v-fieldset>
+          <v-fieldset legend="Agraviante" closable="true">
+            <label>{{ $t('Sex') }}:</label>
+            <v-radio-group v-model="o.criminalSex">
+              <v-radio value="M" label="Masculino" />
+              <v-radio value="F" label="Femenino" />
+            </v-radio-group>
+            <label>{{ $t('Age') }}:</label>
+            <v-number v-model="o.criminalAge" min="0" max="120" />
+            <label>{{ $t('Nationality') }}:</label>
+            <v-autocomplete queryEvent="enter" placeholder="Ingrese mas de 2 letras y presione ENTER" minQueryLength="3"
+              emptyMessage="Buscar por nombre (2 caracteres min.)" size="60" v-model="o.ext.criminalCountry"
+              src="/admin/directory/api/country">
+              <template v-slot:label="{ selected }" v-if="o.ext.criminalCountry">{{ selected.name }}</template>
+              <template v-slot="{ row }">
+                {{ row.name }}
+              </template>
+            </v-autocomplete>
+          </v-fieldset>
+          <label>Observación:</label>
+          <v-textarea maxlength="250" v-model="o.observation" />
         </div>
-      </v-fieldset>
-      <v-fieldset legend="DIRECCIÓN DE LA VIVIENDA">
-        <label>Nombre de la Calle, Avenida, Jirón, Carretera</label>
-        <input v-model="o.nombre_calle" />
-        <label>Número</label>
-        <input v-model="o.numero" />
-        <label>Interior</label>
-        <input v-model="o.interior" />
-        <label>Piso</label>
-        <input v-model="o.piso" />
-        <label>Manzana</label>
-        <input v-model="o.manzana_vivienda" />
-        <label>Lote</label>
-        <input v-model="o.lote" />
-        <label>Km</label>
-        <input v-model="o.km" />
-        <label>Teléfono</label>
-        <input v-model="o.telefono" />
-      </v-fieldset>
-      <v-fieldset legend="DATOS DEL INFORMANTE">
-        <label>Nombre del informante</label>
-        <v-textarea v-model="o.informant" maxlength="100" />
-        <label>Es jefe/a del hogar</label>
-        <v-radio-group v-model="o.is_boss_house">
-          <v-radio value="Si" />
-          <v-radio value="No" />
-        </v-radio-group>
-        <template v-if="o.is_boss_house==='Si'">
-          <label>¿Cuál es relación que mantiene con el jefe/a de hogar?</label>
-          <v-radio-group v-model="o.relation_with_boss_house">
-            <v-radio value="1" label="Es el jefe/a de hogar" />
-            <v-radio value="2" label="Esposo/a, compañero/a, conviviente del/la jefe/a de hogar"/>
-            <v-radio value="3" label="Hijo/a, Hijastro/a del/la jefe/a de hogar"/>
-            <v-radio value="4" label="Yerno/nuera del/la jefe/a de hogar" />
-            <v-radio value="5" label="Padres/suegros del/la jefe/a de hogar" />
-            <v-radio value="6" label="Hermano/a del/la jefe/a de hogar" />
-            <v-radio value="7" label="Otros parientes del/la jefe/a de hogar" />
-          </v-radio-group>
-        </template>
-      </v-fieldset>
-      <div class="xyz" v-if="o.id">
-        <a :href="'/admin/poll/' + (o.tmpId ? -o.tmpId : o.id) + '/a'"
-          ><b>SECCIÓN A: CARACTERÍSTICAS Y SITUACIÓN DE LA VIVIENDA</b> [Responde solo
-          el jefe de hogar]</a
-        >
-        <a :href="'/admin/poll/' + (o.tmpId ? -o.tmpId : o.id) + '/peoples'"
-          ><b>SECCIÓN B: CARACTERÍSTICAS SOCIODEMOGRÁFICAS I</b>
-          [Idealmente responden todos los miembros del hogar mayores de 12 años y
-           para aquellos por debajo de dicho rango etario, el jefe/a brinda la información
-            requerida. No obstante, de no poder cumplirse tal condición, el/la jefe/a puede
-             brindar información por todos los demás miembros del hogar] - 
-             <b>SECCIÓN C: FUENTES DE INGRESO</b> [Debe ser respondida por todo miembro del hogar mayor de 14 años de edad ]</a
-        >
-        <a :href="'/admin/poll/' + (o.tmpId ? -o.tmpId : o.id) + '/d'"
-          ><b>SECCIÓN D: CARACTERÍSTICAS SOCIODEMOGRÁFICAS II</b> [Debe ser respondida
-          por el jefe/a de hogar]</a
-        >
-        <a :href="'/admin/poll/' + (o.tmpId ? -o.tmpId : o.id)+'/e'"
-          ><b>SECCIÓN E: MÓDULO DE EDUCACIÓN</b> [Idealmente debe ser respondida por
-          todos los miembros del hogar mayores de 12 años matriculados en la
-          educación básica o superior y/o por el jefe/a de hogar para los
-          miembros del hogar menores de 12 años. De no ser así, la información
-          puede ser provista solamente por el/la jefe/a de hogar]</a
-        >
-        <a :href="'/admin/poll/' + (o.tmpId ? -o.tmpId : o.id) + '/f'"
-          ><b>SECCIÓN F: MÓDULO DE SALUD</b> [Debe ser respondida por el jefe/a de
-          hogar] - <b>SECCIÓN G: MÓDULO DE SEGURIDAD ALIMENTARIA</b> [Debe ser respondida por
-          el jefe/a de hogar]</a
-        >
-        <a :href="'/admin/poll/' + (o.tmpId ? -o.tmpId : o.id) + '/h'"
-          ><b>SECCIÓN H: OFERTA DE FUERZA DE TRABAJO Y PERCEPCIÓN DE INGRESOS</b> -  
-          <b>SECCIÓN I. EMPRENDIMIENTO</b>
-        </a>
-        <a :href="'/admin/poll/' + (o.tmpId ? -o.tmpId : o.id) + '/j'"
-          >SECCIÓN J: ACTIVIDADES AGROPECUARIAS</a
-        >
-        <a :href="'/admin/poll/' + (o.tmpId ? -o.tmpId : o.id) + '/k'"
-          >SECCIÓN K: REDES SOCIALES Y MOVILIDAD EN EL TERRITORIO</a
-        >
       </div>
     </v-form>
   </ion-content>
 </template>
 <script>
-import { IonContent } from "@ionic/vue";
-import { Geolocation } from "@capacitor/geolocation";
-//import M from "minimatch";
-
-var axios = window.axios;
-export default window._.ui({
-  components: { IonContent },
-  props: ["id"],
+var { _, axios } = window;
+export default _.ui({
+  props: ['id'],
   data() {
     return {
-      trayLocation: null,
-      regionList: [],
-      provinceList: [],
-      districtList: [],
-      townList: [],
+      c: 0, co: null, pathIcon: '/cdn/symbol-defs.svg',
       o: {
-        id: null,
-        region: null,
-        provincia: null,
-        distrito: null,
-        centro_poblado: null,
-        is_boss_house:null,
-        urb_rur:null,
-        lat: null,
-        lon: null,
-        people: [],
-      },
+        id: null, description: null, victimAge: null, criminalAge: null,
+        ext: { province: null },
+        districtId: null
+      }
     };
   },
+  updated2() {
+    var me = this, v = me.o.districtId ? me.o.districtId : me.o.ext.province;
+    //console.log('updated '+(me.o.districtId ? me.o.districtId : me.o.ext.province));
+    //console.log(v);
+    me.$refs.layerControl.setScope(v ? v : null);
+  },
   mounted() {
-    var me=this;
-    me.$on('sync',me.app.onSyncPoll);
-    me.changeRoute();
+    this.changeRoute();
   },
-  updated() {
-    window.app.bindLinks(this.$el);
-  },
+  //--mounted:function(){this.pathIcon=require('@/ancash.svg');},
   methods: {
-    async changeRoute() {
-      var me = this;
-      if (me.id < 0||me.id>0&&!me.app.connected) {
-        me.getStoredList("poll").then((poll) => {
-          poll.forEach((e) => {
-            if (e.tmpId == Math.abs(me.id)||e.id==me.id) {
-              me.o = e;
-              me.trayLocation = e.lat && e.lon;
-            }
-          });
+    changeRoute() {
+      var me = this, id = me.id;
+      if (id)
+        axios.get('/api/obresec/crime/' + id).then((r) => {
+          var o = r.data || {};
+          me.o = o;
+          me.$refs.layerControl.unmove = true;
         });
-      } else if (me.id) {
-        axios
-          .get("/api/poll/" + me.id, { params: { poll: me.app.poll } })
-          .then((d) => {
-            me.o = d.data;
-          });
-      } else {
-        try {
-          var s = JSON.parse(localStorage.getItem("setting")),
-            o = me.o;
-          o.region = s.region.id;
-          o.provincia = s.province.code;
-          o.distrito = s.district.code;
-          o.centro_poblado=s.town.id;
-        } catch (e) {
-          console.error(e);
-        }
+      else {
+        var s = localStorage.getItem('crime.scope');
+        if (s)
+          me.layerControlScope(s);
       }
-      me.removeStored("people");
+    },
+    changeProvince(o) {
+      var me = this;
+      if (me.o.districtId &&
+        !me.o.districtId.toString().startsWith(_.pad(o.provinceId, 4))
+      ) {
+        me.o.districtId = null;
+      }
+      me.$refs.district.load(o);
+    },
+    create() {
+      var me = this, o = { description: null, victimAge: null, criminalAge: null, ext: { province: null } };
+      o.districtId = me.o.districtId;
+      o.ext.province = me.o.ext.province;
+      me.o = o;
+      me.$refs.map.collection.clear();
+      me.open("/admin/obresec/crime/create");
+    },
+    layerControlScope(v) {
+      //esto se ejecutara despues de cargar 
+      //se debe permitir el movimiento despues que ya se centro en donde esta el marcador
+      var me = this, o = me.o;
+      v = parseInt(v.feature ? v.feature.getId() : v)
+      //console.log('layerControlScope='+v);
+      if (v > 9999) {
+        me.o.ext.province = Math.trunc(v / 100);
+        me.o.districtId = v;
+        if (me.$refs.layerControl.unmove && 0 > o.lon) {
+          console.log('mapBuild >  addMarker ' + o.lon + ',' + o.lat);
+          me.$refs.map.addFeature(o);
+          me.addMarker();
+        }
+        me.$refs.layerControl.unmove = 0;
+        console.log('sse vuelve a permitir el movimiento');
+
+      } else if (v > 99) {
+        me.o.ext.province = v;
+      }
+
     },
     process(o) {
-      var me = this;
-      o.poll = me.app.poll;
-      if (!me.trayLocation) {
-        me.MsgBox("Debe tratar de obtener la geolocalización.");
-        return false;
-      }
+      o.districtId = _.pad(o.districtId, 6);
+      o.victimCountry = o.ext.victimCountry ? o.ext.victimCountry.id : o.victimCountry;
+      o.criminalCountry = o.ext.criminalCountry ? o.ext.criminalCountry.id : o.criminalCountry;
       return o;
     },
-    changeTown(v) {
-      var me=this;
-      if(v){
-				me.getStoredList('sample').then((towns)=>{
-          towns.forEach((town)=>{
-            if(v==town.code){
-              if(!me.o.urb_rur)
-              me.o.urb_rur=town.tipo;
-            }
-          })
-        })}
+    mapBuild() {
+      var me = this, o = me.o;
+      if (0 > o.lon) {
+        console.log('mapBuild >  addMarker ' + o.lon + ',' + o.lat);
+        me.$refs.map.addFeature(o);
+        me.addMarker();
+      }
     },
-    async printCurrentPosition() {
-      this.trayLocation = 1;
-      const coordinates = await Geolocation.getCurrentPosition();
-      //Debe ponerse una vntana de permiso
-      var c = coordinates.coords;
-      this.o.lat = c.latitude;
-      this.o.lon = c.longitude;
+    translateend(e) {
+      var o = this.o;
+      o.lat = e.lat;
+      o.lon = e.lon;
     },
-    close(o) {
-      var me = this;
-      if (o.data.id) me.o.id = o.data.id;
-      if (o.data.tmpId) me.o.tmpId = o.data.tmpId;
-      me.$router.replace("/admin/poll/" + me.o.id);
+    addMarker() {
+      var m = this.$refs.map;
+      console.log(m);
+      if (m.collection) {
+        if (!m.collection.getLength()) {
+          m.addFeature(null);
+        } else {
+          m.map.getView().animate({
+            center: m.collection.item(0).getGeometry().getCoordinates(),
+            zoom: 17,
+            duration: 1000
+          });
+        }
+      }
     },
-  },
+    close2(r) {
+      this.o.id = r.data;
+    }
+  }
 });
 </script>
 <style scoped>
-.xyz {
-  padding: 0px !important;
+/deep/ .v-dialog-content>form {
+  display: flex;
+  flex-direction: column;
 }
-.xyz > a {
-  padding: 10px;
-  background-color: #e1f8ff;
-  border: 1px solid gray;
-  margin-top: 10px;
-  display: block;
+/deep/ .v-dialog-content>form > div{
+  padding: 0px !important; 
 }
 </style>

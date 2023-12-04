@@ -68,6 +68,7 @@
 	</ion-content>
 </template>
 <script>
+
 export default window._.ui({
 	props:['id'],
 	data(){return{o:{red:null,microred:null,establishment:null,region:null,province:null,district:null,town:null},k:0,memo:{}}},

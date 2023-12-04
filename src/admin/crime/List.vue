@@ -1,24 +1,23 @@
 <template>
-	<v-form header="Cuestionario de Condiciones de Vida" style="position:relative;" 
-		action="/admin/poll">
+	<ion-content :scroll-events="true">
+    <v-form header="Delitos" style="position:relative;" 
+		action="/admin/obresec/crime">
 		<v-table
-            :selectable="true"
             :scrollable="true"
-            rowKey="id"
             :pagination="50"
             src="/api/obresec/crime" >
             <template v-slot:header="">
-                <v-button value="#{bundle.Create}" v-if="perms.OBRESEC_REGISTER_CRIME" icon="fa-plus" class="on" v-on:click.prevent="create"/>
-                <v-button value="#{bundle.Edit}" v-if="perms.OBRESEC_REGISTER_CRIME" icon="fa-pen" 
+                <v-button :value="$t('Create')" v-if="can(perms.OBRESEC_REGISTER_CRIME)" icon="fa-plus" class="on" v-on:click.prevent="create"/>
+                <v-button :value="$t('Edit')" v-if="can(perms.OBRESEC_REGISTER_CRIME)" icon="fa-pen" 
                           v-on:click.prevent="edit" 
-                          :disabled="!canAdmin(rowSelected)"/>
-                <v-button value="#{bundle.Delete}" v-if="perms.OBRESEC_REGISTER_CRIME" icon="fa-trash" v-on:click.prevent="destroy" 
-                          :disabled="!canAdmin(rowSelected)"/>
-                <v-button title="#{bundle.Refresh}" icon="fa-sync" v-on:click.prevent="refresh"/>
-                <v-button icon="fa-download" value="#{'Reportes'}" v-on:click.prevent="report"/>
+                          :disabled="!can()"/>
+                <v-button :value="$t('Delete')" vif="perms.OBRESEC_REGISTER_CRIME" icon="fa-trash" v-on:click.prevent="destroy" 
+                          :disabled="!can()"/>
+                <v-button :title="$t('Refresh')" icon="fa-sync" v-on:click.prevent="refresh"/>
+                <v-button icon="fa-download" :value="$t('Report')" v-on:click.prevent="report"/>
             </template>
-            <template v-slot:default="{row,index}">
-                <td header="#" width="28" class="center" :title="row.id">
+            <template v-slot="{row,index}">
+                <td header="#" width="42" class="center" :title="row.id">
                     {{pad(index+1,3)}}
                 </td>
                 <td width="50" class="center" header="&hearts;">
@@ -27,15 +26,15 @@
                             <v-options :data="autority" value-field="id" display-field="name"/>
                         </v-select>
                     </v-filter>
-                    <i v-if="row.ext.own" class="fa fa-heart" />
+                    <i vif="row.ext.own" class="fa fa-heart" />
                 </td>
-                <td width="80" class="center" label="#{bundle.Fecha}">
+                <td width="120" class="center" :header="$t('Date')">
                     <v-filter>
                         <v-filter-calendar v-model="filters.fecha" icon="fa-calendar"/>
                     </v-filter>
                     {{row.fecha|date('date')}}
                 </td>
-                <td width="200" label="#{bundle.Type}">
+                <td width="200" :header="$t('Type')">
                     <v-filter>
                         <v-select v-model="filters.crimeType" multiple="true">
                             <v-options url="/admin/obresec/api/crime-type/0/0" value-field="id" display-field="name"/>
@@ -43,31 +42,31 @@
                     </v-filter>
                     {{row.crimeType?row.crimeType.name:''}}
                 </td>
-                <td width="180" label="#{bundle.Province}">
+                <td width="180" :header="$t('Province')">
                     <v-filter>
-                        <v-select v-model="filters.province" v-on:input="$refs.districtSelect.load({provinceId:filters.province})">
-                            <option value="">#{bundle.SelectOneMessage}</option>
+                        <v-select v-model="filters.province" v-on:input="$refs.districtSelect.load({provinceId:filters.province})" multiple="true">
                             <v-options url="/admin/directory/api/province/0/0?regionId=2" value-field="code" display-field="name"/>
                         </v-select>
                     </v-filter>
-                    {{row.ext.district[3]?row.ext.district[3]:'---'}}
+                    {{row.ext&&row.ext.district&&row.ext.district[3]}}
+
                 </td>
-                <td width="180" label="#{bundle.District}">
+                <td width="180" :header="$t('District')">
                     <v-filter>
                         <v-select ref="districtSelect" v-model="filters.district" :disabled="!filters.province" >
                             <option value="">#{bundle.SelectOneMessage}</option>
                             <v-options url="/admin/directory/api/district/0/0" value-field="code" display-field="name"/>
                         </v-select>
                     </v-filter>
-                    {{row.ext.district[1]?row.ext.district[1]:row.districtId}}
+                    {{row.ext&&row.ext.district&&row.ext.district[1]}}
                 </td>
-                <td width="360" label="#{bundle.Description}">
+                <td width="360" :header="$t('Description')">
                     <v-filter>
                         <input v-model="filters.description"/>
                     </v-filter>
                     {{row.description}}
                 </td>
-                <td width="60" class="center" label="#{bundle.Victim} #{bundle.Sex}">
+                <td width="80" class="center" :header="`${$t('Victim')} ${$t('Sex')}`">
                     <v-filter>
                         <v-select multiple="true" v-model="filters.victimSex">
                             <v-options :data="sex" value-field="id" display-field="name"/>
@@ -75,19 +74,19 @@
                     </v-filter>
                     {{row.victimSex}}
                 </td>
-                <td width="60" class="center" label="#{bundle.Victim} #{bundle.Age}">
+                <td width="80" class="center" :header="`${$t('Victim')} ${$t('Age')}`">
                     <v-filter>
                         <input v-model="filters.victimAge"/>
                     </v-filter>
                     {{row.victimAge}}
                 </td>
-                <td width="100" label="#{bundle.Victim} #{bundle.Country}">
+                <td width="100" :header="`${$t('Victim')} ${$t('Country')}`">
                     <v-filter>
                         <input v-model="filters.victimCountry"/>
                     </v-filter>
                     {{row.victimCountry}}
                 </td>
-                <td width="60" class="center" label="#{bundle.Criminal} #{bundle.Sex}">
+                <td width="80" class="center" :header="`${$t('Criminal')} ${$t('Sex')}`">
                     <v-filter>
                         <v-select multiple="true" v-model="filters.criminalSex">
                             <v-options :data="sex" value-field="id" display-field="name"/>
@@ -95,19 +94,19 @@
                     </v-filter>
                     {{row.criminalSex}}
                 </td>
-                <td width="60" class="center" label="#{bundle.Criminal} #{bundle.Age}">
+                <td width="80" class="center" :header="`${$t('Criminal')} ${$t('Age')}`">
                     <v-filter>
                         <input v-model="filters.criminalAge"/>
                     </v-filter>
                     {{row.criminalAge}}
                 </td>
-                <td width="100" label="#{bundle.Criminal} #{bundle.Country}">
+                <td width="100" :header="`${$t('Criminal')} ${$t('Country')}`">
                     <v-filter>
                         <input v-model="filters.criminalCountry"/>
                     </v-filter>
                     {{row.criminalCountry}}
                 </td>
-                <td width="90" class="center" label="#{bundle.Coordinates}">
+                <td width="90" class="center" :header:="$t('Coordinates')">
                     <v-filter>
                         <v-select multiple="true" v-model="filters.coordinate">
                             <v-options :data="coordinate" value-field="id" display-field="name"/>
@@ -115,13 +114,13 @@
                     </v-filter>
                     {{0>row.lat&&0>row.lon?'SI':''}}
                 </td>
-                <td width="80" class="center" label="#{bundle.RegistrationDate}">
+                <td width="120" class="center" :header="$t('RegistrationDate')">
                     <v-filter>
                         <v-filter-calendar v-model="filters.fechaReg" icon="fa-calendar"/>
                     </v-filter>
                     {{row.fechaReg|date}}
                 </td>
-                <td width="80" class="center" label="#{bundle.User}">
+                <td width="80" class="center" :header="$t('User')">
                     <v-filter>
                         <input v-model="filters.usuario"/>
                     </v-filter>
@@ -131,7 +130,7 @@
                 </td>
             </template>
         </v-table>
-	</v-form>
+	</v-form></ion-content>
 </template>
 <script>
 	export default window.ui({
@@ -146,12 +145,10 @@
 				return p;
 			}
 		},
-		data(){return {rowSelectedCount2:0,page:0,data:[],mode:0,query:null}},
-		updated(){
-			window.app.bindLinks(this.$el);
-		},
+		data(){return {rowSelectedCount2:0,page:0,data:[],mode:0,query:null,filter:{coordinate:null,autority:null,sex:null}}},
 		mounted(){
-			var me=this;
+			let me=this;
+            me.perms.OBRESEC_REGISTER_CRIME=1;
 			me.changeRoute();
 			me.filters.poll=me.app.poll;
 			me.$on('sync',function(dr,dl){
@@ -174,13 +171,24 @@
 			});
 		},
 		methods:{
-			rss(e){
-				e=e.selection;
-				this.rowSelectedCount2=e?e.length:0;
-			},
+            rewrite(url){
+                return '/admin'+url;
+            },
 			changeRoute(){
 				this.resize();
-			}
+			},
+            can(r){
+                if(!r){
+                    var me=this,perms=me.perms,u=me.user;
+                    r=this.getSelected()[0];
+                    return r&&(1||perms.OBRESEC_ADMIN_CRIME||r.uid==u.uid);
+                }else{
+                    return 1;
+                }
+            },
+            report(){
+                this.open("/admin/obresec/report/crime");
+            }
 		}
 	});
 </script>

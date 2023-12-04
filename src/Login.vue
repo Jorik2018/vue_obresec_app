@@ -1,5 +1,5 @@
 <template>
-  <div style="background-color: white; height: 100%; overflow: auto">
+  <div style="background-color: rgb(0, 0, 0); height: 100%; overflow: auto">
     <img
       src="@/fs/images/fondo-login.svg"
       width="100%"
@@ -79,16 +79,13 @@
   </div>
 </template>
 <script>
-var axios = window.axios;
-export default window.ui({
+var {axios, ui} = window;
+export default ui({
   data() {
     return { type: "password", o: { name: "", pass: "" }, data: [] };
   },
-  update() {
-    window.app.bindLinks(this.$el);
-  },
   created() {
-    this.o.name = window.app.usuario;
+    //this.o.name = window.app.usuario;
   },
   methods: {
     focus(e) {
@@ -99,26 +96,28 @@ export default window.ui({
         e.target.parentNode.classList.remove("v-focus");
       }
     },
-    init() {
-      var me = this;
-      me.app.k++;
-      me.$router.push("/");
-    },
     success(d) {
       var me = this;
       if (d.token) {
         axios.defaults.headers.common = { Authorization: `Bearer ` + d.token };
-        localStorage.setItem("session", JSON.stringify(d));
-        window.axios.get("/api/user").then(function (r) {
-          d.people = { display_name: r.data.data.display_name };
-          localStorage.setItem("session", JSON.stringify(d));
-          me.app.session = d;
-          me.app.k++;
-        });
         me.app.session = d;
-        me.app.connect();
-        console.log(d);
-        me.init();
+        const baseURL = process.env.VUE_APP_BASE_URL;
+        const _finally = (d) => {
+          me.app.connect();
+          console.log(d);
+          me.app.k++;
+          this.$router.replace('/');
+        }
+        if(baseURL.includes('.gob.')){
+          _finally(d);
+        }else{
+          axios.get("/api/user").then((r) => {
+            d.people = { display_name: r.data.data.display_name };
+            me.app.session = d;
+          }).finally(() => {
+            _finally(d);
+          });          
+        }
       } else {
         this.openToast();
         //_.MsgBox('El usuario o la contrase&ntilde;a no son reconocidas por el servidor.');
@@ -128,9 +127,9 @@ export default window.ui({
       var me = this;
       me.o.name = me.o.name == undefined ? "" : me.o.name;
       me.o.pass = me.o.pass == undefined ? "" : me.o.pass;
+      const baseURL = process.env.VUE_APP_BASE_URL;
       if (me.validate(this.$el)) {
-        axios
-          .post("/jwt-auth/v1/token", {
+        axios.post(baseURL.includes('.gob.')?"/api/auth":"/jwt-auth/v1/token", {
             username: this.o.name,
             password: this.o.pass,
           })
@@ -215,7 +214,7 @@ export default window.ui({
 });
 </script>
 <style scoped>
-.content-login {
+.content-login2 {
   background-color: white;
   position: relative;
 }

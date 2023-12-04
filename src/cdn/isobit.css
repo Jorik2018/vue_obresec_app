@@ -878,7 +878,7 @@ se desea q los formularios sean srollables para mantener las d
 th.right{
     text-align:  center !important;
 }
-span.readonly{
+*.readonly{
     border-radius: 4px;
     padding:4px; display: block ; 
     background-color: #f1f8f9 !important;
@@ -934,7 +934,9 @@ fieldset.ui-fieldset{
 .yellow,td.yellow{
     background-color: #ffffbb;
 }
-
+.v-datatable{
+    background-color:#dbdbdb;
+}
 .v-datatable-odd.yellow{
     background-color: #ffff77;
 }
@@ -944,7 +946,7 @@ fieldset.ui-fieldset{
 tr.v-selected.yellow,.v-selected > td.yellow {
     background-color: #8e8903;
 }
-tr:nth-child(even).yellow{
+tr:nth-child(even).yellow,.v-table tr:nth-child(even).yellow{
     background-color: #fff767;
 }
 tr.yellow.v-selected{
@@ -992,6 +994,13 @@ tr.v-selected.red,tr.v-selected > td.red {
 }
 tr.v-selected.green,tr.v-selected > td.green {
     background-color: darkgreen !important;
+}
+.-red:hover{
+    background-color: red !important;
+    color:white !important;
+}
+.-red{
+    background-color: pink !important;
 }
 .tre{
     padding-left:0px;
@@ -2514,6 +2523,9 @@ label.v-radio,label.v-checkbox {
     background-color: white;
     padding: 20px;
 }
+.yellow > .v-dialog-content,.green > .v-dialog-content{
+    background-color: unset;
+}
 .v-msgbox-buttons{ margin-top:20px;}
 @media(max-width:700px){
     .v-dialog{
@@ -2728,7 +2740,7 @@ div.v-focused{
 input:read-only:focus, textarea:read-only:focus, select:read-only:focus{
     outline: none;
 }
-input:not(:disabled):read-only, textarea:not(:disabled):read-only{
+input:read-only, textarea:read-only{
     background-color: transparent !important;
     border:none !important;
     padding-left: 0px !important;
@@ -3142,10 +3154,11 @@ legend,.v-fieldset > legend {
 .v-datatable-scrollable-header{
     overflow: hidden;
 }
-.v-dialog-content > form > div:not(.v-datatable){
+.v-dialog-content > form > div:not(.v-datatable):not(.v-select){
     -background-color:white;
     padding:10px;
 }
+
 .v-datatable-scrollable-header{
     overflow: hidden;
 }
@@ -3170,4 +3183,23 @@ legend,.v-fieldset > legend {
 }
 .v-dialog-titlebar-icon{
     display: unset !important;
+}
+fieldset, .v-fieldset {
+    border: 1px solid #0f62ac;
+}
+.v-table-buttons{
+    display: inline-block;
+    background-color: transparent;
+    position: absolute;
+    border-width: 0px;
+    top: 3px;
+    right: 0px;
+    padding: 3px 5px;
+    z-index: 200;
+}
+.v-table-buttons > .svg-inline--fa {
+    font-size:26px;
+}
+th .v-select{
+    color:black !important;
 }

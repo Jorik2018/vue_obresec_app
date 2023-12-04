@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
+    "serve:legacy": "SET NODE_OPTIONS=--openssl-legacy-provider && vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint",
     "update_start": "npm install isobit-ui@latest & npm run serve",
@@ -20,15 +21,15 @@
     "@capacitor/ios": "^3.2.2",
     "@capacitor/local-notifications": "^1.0.5",
     "@capacitor/network": "^1.0.3",
-    "@fortawesome/fontawesome-free": "^5.14.0",
+    "@fortawesome/fontawesome-free": "^6.2.0",
     "@ionic/core": "^4.6.0",
     "@ionic/vue": "0.0.9",
     "axios": "^0.19.2",
     "chart.js": "^2.9.3",
     "core-js": "^3.6.5",
-    "isobit-ui": "^0.1.102",
-    "ol": "^6.6.1",
+    "ol": "^6.15.1",
     "vue": "2.6.11",
+    "vue-i18n": "^8.28.2",
     "vue-router": "^3.4.3"
   },
   "devDependencies": {

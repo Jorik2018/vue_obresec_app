@@ -1,35 +1,25 @@
 <template>
-<div><AppMenu></AppMenu>
-			<ion-router-outlet id="main"></ion-router-outlet>
-			<ion-page>
-
-	<!--<div class="v-main" id="app">-->
-		<ion-header id="header-categoria">
-			
-			<!--<div id="page-header">-->
-			<div class="primary center" style="padding-top: 3px;padding-bottom: 7px;">
-				<span  v-on:click="$router.go(-1)" style="position: absolute;left: 0px;padding: 5px 13px;display: inline-block; margin-top: 10px;font-size: 15px;">
-					<i class="fa fa-arrow-left"></i>
-				</span>
-				<span v-on:click="toggleMenu" style="position: absolute;right: 0px;padding: 5px 13px;display: inline-block; margin-top: 8px;font-size: 18px;">
-					<i class="fa fa-bars"></i>
-				</span>
-				<img style="padding:10px 0px 0px 0px;max-height: 40px;max-width: 100%;" src="@/fs/images/APPShamiblancopartesuperior.svg">
-			</div>				
-		</ion-header>
-
-		<ion-content :scroll-events="true">
-
+	<div>
+		<AppMenu></AppMenu>
+		<ion-router-outlet id="main"></ion-router-outlet>
+		<ion-page>
+			<ion-header id="header-categoria">
+				<div class="primary center" style="padding-top: 3px;padding-bottom: 7px;">
+					<span  v-on:click="$router.go(-1)" style="position: absolute;left: 0px;padding: 5px 13px;display: inline-block; margin-top: 10px;font-size: 15px;">
+						<i class="fa fa-arrow-left"></i>
+					</span>
+					<span v-on:click="toggleMenu" style="position: absolute;right: 0px;padding: 5px 13px;display: inline-block; margin-top: 8px;font-size: 18px;">
+						<i class="fa fa-bars"></i>
+					</span>
+					<img style="padding:10px 0px 0px 0px;max-height: 40px;max-width: 100%;" 
+						src="@/fs/images/APPShamiblancopartesuperior.svg">
+				</div>				
+			</ion-header>
+			<ion-content :scroll-events="true">
 				<router-view></router-view>
-	
-		</ion-content>
-
-	
-
-		
-	<!--</div>-->
-</ion-page>
-</div>
+			</ion-content>
+		</ion-page>
+	</div>
 </template>
 <script>
 import AppMenu from './Menu.vue'
